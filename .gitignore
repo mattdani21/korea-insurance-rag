@@ -1,0 +1,6 @@
+__pycache__/
+.env
+index/
+*.npz
+.venv/
+.DS_Store
