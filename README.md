@@ -51,11 +51,6 @@ bash scripts/fetch_real_contracts.sh   # sources listed; many Korean sites geo-b
 
 Then re-run `python ingest.py`. The pipeline treats every file in `data/` as corpus.
 
-## Why this matters (positioning)
-
-- **Korean market signal:** proves Korean-language text handling + willingness to build *for* the Korean market while learning the language
-- **Domain fit:** insurance documents, clause-level citations, regulated-content care — exactly the intersection of my background (actuarial systems validation at Sanlam, 7+ yrs regulated fintech) and Korean insurers' AI-modernization push
-- **Venture seed:** the same engine, pointed at Korean insurance consumer questions, is a plausible Empyrean Korea product
 
 ## Roadmap
 
@@ -68,4 +63,3 @@ Then re-run `python ingest.py`. The pipeline treats every file in `data/` as cor
 ## Contact
 
 Matthew Hendricks — mattdani21@gmail.com — linkedin.com/in/matthew-hendricks-779576144
-Relocating to South Korea (Seoul preferred · Busan second · anywhere works) — E-7 sponsorship, TOPIK in progress.
