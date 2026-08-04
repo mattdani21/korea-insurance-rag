@@ -1,0 +1,22 @@
+name: test
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install deps
+        run: pip install -r requirements.txt
+      - name: Build index (sample corpus)
+        run: python ingest.py
+      - name: Retrieval check
+        run: python query.py "보험금 지급 사유는 무엇인가요?" --no-llm | grep -q "제6조" || python query.py "보험금 지급 사유는 무엇인가요?" --no-llm | grep -q "제7조"
+      - name: API smoke test
+        run: python test_api.py

@@ -1,5 +1,7 @@
 # 🇰🇷 보험약관 RAG — Korean Insurance Contract Q&A (Portfolio Demo)
 
+[![test](https://github.com/mattdani21/korea-insurance-rag/actions/workflows/test.yml/badge.svg)](https://github.com/mattdani21/korea-insurance-rag/actions)
+
 > 한국어 보험약관 문서를 검색하고 질문에 답하는 RAG(Retrieval-Augmented Generation) 시스템 데모.
 > Built by Matthew Hendricks — senior data/ML engineer (actuarial validation, LLM/RAG, regulated fintech).
 > Part of a relocation portfolio targeting Korean insurers, fintech (Toss/Coupang), and actuarial-tech vendors.
@@ -52,11 +54,20 @@ bash scripts/fetch_real_contracts.sh   # sources listed; many Korean sites geo-b
 Then re-run `python ingest.py`. The pipeline treats every file in `data/` as corpus.
 
 
+## Evaluation
+
+20-question Korean Q&A set (`eval_questions.json`) against the sample corpus — retrieval only, no LLM:
+
+- **hit@1: 80%** (16/20) · **hit@3: 95%** (19/20)
+
+Run it yourself: `python eval.py`. The one miss (보험증권 교부 시점) reflects clause-overlap in the sample chunking — a real 약관 corpus with finer chunking should push hit@1 higher.
+
 ## Roadmap
 
+- [x] Evaluation set (20 Q&A pairs, hit@1 80% / hit@3 95%)
+- [x] CI: GitHub Actions test workflow (ingest + retrieval check + API smoke test)
 - [ ] Real 보험약관 corpus (3–5 insurers, PDF ingest via pypdf)
 - [ ] Chunk-level citation rendering in the UI (clause number chips)
-- [ ] Evaluation set (20 Q&A pairs) with retrieval hit-rate reporting
 - [ ] Korean UI polish + hosted demo (Railway/Render)
 - [ ] Multi-doc filtering (product type, insurer)
 
