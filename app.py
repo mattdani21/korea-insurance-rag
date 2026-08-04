@@ -23,8 +23,19 @@ def index():
     return HTMLResponse(UI)
 
 
+# tiny in-memory rate limit for the public demo (protects the LLM budget)
+import time
+_ask_times = []
+MAX_ASKS_PER_MIN = 12
+
+
 @app.post("/ask")
-def ask(body: Ask):
+def ask(body: Ask, request: Request):
+    now = time.time()
+    _ask_times[:] = [t for t in _ask_times if now - t < 60]
+    if len(_ask_times) >= MAX_ASKS_PER_MIN:
+        return JSONResponse({"detail": "rate limited — try again in a minute"}, status_code=429)
+    _ask_times.append(now)
     hits = q.retrieve(body.question, body.k)
     answer = None
     if config.LLM_API_KEY:
