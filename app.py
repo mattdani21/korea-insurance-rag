@@ -87,12 +87,16 @@ async function ask() {
     const r = await fetch('/ask', {method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({question: q})});
     const d = await r.json();
+    const srcs = (d.sources || []).map((s, i) => {
+      const clauses = (s.text.match(/제\s?\d+조/g) || []).filter((v, j, a) => a.indexOf(v) === j);
+      const chips = clauses.map(c => `<span style="background:#1a4f8b;color:#fff;border-radius:4px;padding:1px 7px;font-size:11px;margin-right:4px">${c}</span>`).join("");
+      return '<div style="margin-top:8px">[' + (i + 1) + '] ' + s.doc + ' · score ' + s.score
+        + '<div>' + chips + '</div>'
+        + '<div style="color:#777;font-size:12px">' + s.text + '</div></div>';
+    }).join('');
     let html = '<div class="card"><div class="q">' + d.question + '</div><div style="margin-top:8px">'
       + (d.answer ? d.answer.replace(/\\n/g, '<br>') : '<span class="err">retrieval-only mode — no LLM key set</span>')
-      + '</div>';
-    html += '<div class="src">' + d.sources.map((s,i) =>
-      '<div style="margin-top:8px">[' + (i+1) + '] ' + s.doc + ' · score ' + s.score
-      + '<div style="color:#777;font-size:12px">' + s.text + '</div></div>').join('') + '</div></div>';
+      + '</div><div class="src">' + srcs + '</div></div>';
     out.innerHTML = html;
   } catch (e) { out.innerHTML = '<div class="card err">' + e + '</div>'; }
 }
