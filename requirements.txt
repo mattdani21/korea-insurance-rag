@@ -1,4 +1,4 @@
-fastembed>=0.3
+fastembed>=0.8,<0.9  # pinned family: >=0.8 changed pooling (mean) vs 0.5.1; eval verified on 0.8.x
 numpy
 fastapi
 uvicorn
