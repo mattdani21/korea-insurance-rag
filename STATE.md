@@ -15,7 +15,7 @@
 
 - **Corpus is synthetic:** `data/` holds `sample_contract_ko.md` + `sample_claims_guide_ko.md` only — NOT official 약관 (README flags this). The real-corpus roadmap item is still open; `fetch_real_contracts.sh` is a guided manual script (Korean insurer sites geo-block overseas IPs), not an automated downloader.
 - **Not deployed:** Dockerfile + Railway instructions ready, but no live URL yet — needs Matt to create the Railway service (autopilot has no Railway access).
-- **Portfolio case study** (M4) not written yet.
+- **Portfolio case study written:** `docs/CASE_STUDY.md` (architecture decisions, eval numbers, geo-blocking lesson) — ready for applications/interviews.
 
 ## Blockers
 
