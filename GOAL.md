@@ -15,20 +15,20 @@ Land Korean work — the demo project proving capability to Korean employers and
 ### M2 — Hard evidence: eval + CI on the real corpus
 
 - [ ] Keep hit@1 ≥ 80% / hit@3 ≥ 95% on the real corpus, or tune chunking (CHUNK_SIZE/CHUNK_OVERLAP in `config.py`) and document the change
-- [ ] Update the README evaluation section with real-corpus numbers and the known miss (보험증권 교부 시점 clause overlap)
-- [ ] Extend `.github/workflows/test.yml` to run `python eval.py` as a CI gate (ingest + retrieval check + API smoke already covered)
-- [ ] Update the stale README roadmap checkboxes (clause citation chips landed in commit cdba94e but the roadmap is not updated)
+- [x] Update the README evaluation section with real-corpus numbers and the known miss (보험증권 교부 시점 clause overlap) — numbers now reflect the sample corpus; real-corpus numbers pending M1
+- [x] Extend `.github/workflows/test.yml` to run `python eval.py` as a CI gate (ingest + retrieval check + API smoke already covered) — `--min-hit1 0.8 --min-hit3 0.95`; fastembed pinned to 0.8.x for reproducibility
+- [x] Update the stale README roadmap checkboxes (clause citation chips landed in commit cdba94e but the roadmap is not updated) — done, plus deployment-config item marked
 
-*Definition of done:* CI runs the full pipeline including eval on the real corpus, and README reflects current numbers.
+*Definition of done:* CI runs the full pipeline including eval on the real corpus, and README reflects current numbers. (Real-corpus eval still blocked on M1.)
 
 ### M3 — Ship the hosted web demo
 
-- [ ] Add deploy config (Railway/Render): uvicorn `app:app`, `$PORT` binding, healthcheck on `/`, build step running `python ingest.py`
-- [ ] Wire `DEEPSEEK_API_KEY` via platform secrets (`.env.example` already documents it; `config.py` reads env)
+- [x] Add deploy config (Railway/Render): Dockerfile with `python ingest.py` build step, `$PORT` binding, healthcheck on `/`
+- [ ] Wire `DEEPSEEK_API_KEY` via platform secrets (`.env.example` already documents it; `config.py` reads env) — needs Matt's Railway account action
 - [ ] Confirm the /ask rate limit (12/min in `app.py`) holds under public traffic and the UI renders Korean correctly
-- [ ] Deploy and publish the public URL in the README
+- [ ] Deploy and publish the public URL in the README — needs Matt's Railway account action
 
-*Definition of done:* a public URL answers Korean questions with clause-cited sources and survives the rate limit without key exposure.
+*Definition of done:* a public URL answers Korean questions with clause-cited sources and survives the rate limit without key exposure. (Deploy step needs Matt — autopilot has no Railway access.)
 
 ### M4 — Prove it in the interview loop
 

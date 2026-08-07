@@ -20,3 +20,5 @@ jobs:
         run: python query.py "보험금 지급 사유는 무엇인가요?" --no-llm | grep -q "제6조" || python query.py "보험금 지급 사유는 무엇인가요?" --no-llm | grep -q "제7조"
       - name: API smoke test
         run: python test_api.py
+      - name: Eval gate (hit@1 >= 80%, hit@3 >= 95%)
+        run: python eval.py --min-hit1 0.8 --min-hit3 0.95

@@ -39,7 +39,7 @@ query.py / app.py: question ──► embed (query: prefix) ──► cosine top
 ```
 
 - **Embeddings:** `intfloat/multilingual-e5-large` via [fastembed](https://github.com/qdrant/fastembed) — local, open-weight, no API cost, handles Korean well
-- **Generation:** DeepSeek API by default (`deepseek-chat`, OpenAI-compatible) — swap in any provider via `LLM_BASE_URL`/`LLM_MODEL`/`*_API_KEY`
+- **Generation:** DeepSeek API by default (`deepseek-v4-flash`, OpenAI-compatible) — swap in any provider via `LLM_BASE_URL`/`LLM_MODEL`/`*_API_KEY`
 - **Citations:** every answer is grounded in retrieved passages with clause references; retrieval-only mode (`--no-llm`) works fully offline
 - **No heavy stack:** numpy cosine search — the corpus is small and this keeps the demo dependency-light
 
@@ -62,13 +62,28 @@ Then re-run `python ingest.py`. The pipeline treats every file in `data/` as cor
 
 Run it yourself: `python eval.py`. The one miss (보험증권 교부 시점) reflects clause-overlap in the sample chunking — a real 약관 corpus with finer chunking should push hit@1 higher.
 
+**CI gate:** the eval runs on every push/PR with thresholds enforced (`python eval.py --min-hit1 0.8 --min-hit3 0.95`) — retrieval quality can't drift silently. `fastembed` is pinned to the 0.8.x family because ≥0.8 changed pooling (mean vs CLS); eval numbers are verified on 0.8.x.
+
+## Deployment (Railway)
+
+One-click from GitHub (Dockerfile included — builds the index during deploy):
+
+1. Railway dashboard → **New Project → Deploy from GitHub repo** → `mattdani21/korea-insurance-rag`
+2. Add variable: `DEEPSEEK_API_KEY` (LLM answers; retrieval-only works without it)
+3. Deploy — the build runs `python ingest.py` (embeds the corpus), the container serves uvicorn on `$PORT`
+4. Healthcheck: GET `/` returns the UI (200); Railway's default check works
+
+Or locally: `uvicorn app:app --reload` → http://localhost:8000
+
 ## Roadmap
 
 - [x] Evaluation set (20 Q&A pairs, hit@1 80% / hit@3 95%)
-- [x] CI: GitHub Actions test workflow (ingest + retrieval check + API smoke test)
-- [ ] Real 보험약관 corpus (3–5 insurers, PDF ingest via pypdf)
-- [ ] Chunk-level citation rendering in the UI (clause number chips)
-- [ ] Korean UI polish + hosted demo (Railway/Render)
+- [x] CI: GitHub Actions test workflow (ingest + retrieval check + API smoke test + **eval gate**)
+- [x] Chunk-level citation rendering in the UI (clause number chips — commit cdba94e)
+- [x] Korean UI polish (commit cdba94e)
+- [x] Deploy config (Dockerfile, $PORT binding, index built at deploy — commit pending)
+- [ ] Real 보험약관 corpus (3–5 insurers, PDF ingest via pypdf) — **blocked**: geo-blocked sources, needs VPN / Seoul partner (see `scripts/fetch_real_contracts.sh`)
+- [ ] Hosted demo deployed to Railway + public URL in README
 - [ ] Multi-doc filtering (product type, insurer)
 
 ## Contact
