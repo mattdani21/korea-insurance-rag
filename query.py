@@ -9,6 +9,7 @@ Usage:
 """
 import argparse
 import json
+from typing import Optional
 
 import numpy as np
 
@@ -21,14 +22,36 @@ def load_index():
     return data["vectors"], store["chunks"], store["meta"]
 
 
-def retrieve(question: str, k: int = config.TOP_K):
+def retrieve(question: str, k: int = config.TOP_K, doc_filter: Optional[str] = None):
+    """Top-k passages for a question, optionally restricted to one document.
+
+    doc_filter is a case-insensitive substring match on the source filename
+    (e.g. "samsung" matches "samsung_life_terms.pdf"). Returns [] when nothing
+    matches — the caller can fall back to unfiltered retrieval.
+    """
     from fastembed import TextEmbedding
     vectors, chunks, meta = load_index()
     model = TextEmbedding(model_name=config.EMBED_MODEL)
     qv = np.array(list(model.embed(["query: " + question])), dtype="float32")[0]
     sims = vectors @ qv / (np.linalg.norm(vectors, axis=1) * np.linalg.norm(qv) + 1e-9)
-    top = np.argsort(sims)[::-1][:k]
-    return [(chunks[i], meta[i], float(sims[i])) for i in top]
+    out = []
+    for i in np.argsort(sims)[::-1]:
+        if doc_filter and doc_filter.lower() not in meta[i]["doc"].lower():
+            continue
+        out.append((chunks[i], meta[i], float(sims[i])))
+        if len(out) >= k:
+            break
+    return out
+
+
+def doc_names() -> list:
+    """Distinct source document names in the index (for the filter UI)."""
+    _, _, meta = load_index()
+    seen = []
+    for m in meta:
+        if m["doc"] not in seen:
+            seen.append(m["doc"])
+    return seen
 
 
 def ask_llm(question: str, hits):
@@ -59,14 +82,17 @@ def main():
     ap.add_argument("question", nargs="?", help="question in Korean or English")
     ap.add_argument("--no-llm", action="store_true", help="retrieval only (offline)")
     ap.add_argument("--k", type=int, default=config.TOP_K, help="top-k passages")
+    ap.add_argument("--doc", default=None, help="restrict retrieval to one source doc (substring of filename)")
     args = ap.parse_args()
 
     q = args.question or input("질문: ").strip()
     if not q:
         return
 
-    hits = retrieve(q, args.k)
-    print("\n=== Retrieved passages ===")
+    hits = retrieve(q, args.k, doc_filter=args.doc)
+    print(f"\n=== Retrieved passages{' (filtered: ' + args.doc + ')' if args.doc else ''} ===")
+    if not hits and args.doc:
+        print(f"(no chunks match doc filter '{args.doc}' — try a shorter substring, e.g. the insurer name)")
     for i, (text, m, s) in enumerate(hits):
         print(f"[{i + 1}] ({m['doc']} #{m['chunk']}, score={s:.3f})\n{text[:220]}...\n")
 

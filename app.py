@@ -6,6 +6,7 @@ Usage:
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel
+from typing import Optional
 
 import config
 import query as q
@@ -16,11 +17,22 @@ app = FastAPI(title="보험약관 RAG demo — Korean Insurance Contract Q&A")
 class Ask(BaseModel):
     question: str
     k: int = config.TOP_K
+    doc: Optional[str] = None  # restrict retrieval to one source doc (substring)
 
 
 @app.get("/", response_class=HTMLResponse)
 def index():
     return HTMLResponse(UI)
+
+
+@app.get("/documents")
+def documents():
+    """Distinct corpus documents, for the filter dropdown. (Not /docs — FastAPI
+    reserves that path for Swagger UI.)"""
+    try:
+        return JSONResponse({"docs": q.doc_names()})
+    except Exception as e:  # noqa: BLE001
+        return JSONResponse({"docs": [], "error": str(e)}, status_code=500)
 
 
 # tiny in-memory rate limit for the public demo (protects the LLM budget)
@@ -36,7 +48,7 @@ def ask(body: Ask, request: Request):
     if len(_ask_times) >= MAX_ASKS_PER_MIN:
         return JSONResponse({"detail": "rate limited — try again in a minute"}, status_code=429)
     _ask_times.append(now)
-    hits = q.retrieve(body.question, body.k)
+    hits = q.retrieve(body.question, body.k, doc_filter=body.doc)
     answer = None
     if config.LLM_API_KEY:
         try:
@@ -45,6 +57,7 @@ def ask(body: Ask, request: Request):
             answer = f"(LLM error: {e})"
     return JSONResponse({
         "question": body.question,
+        "doc": body.doc,
         "answer": answer,
         "sources": [
             {"text": text[:300], "doc": m["doc"], "score": round(s, 3)}
@@ -75,17 +88,29 @@ UI = """<!doctype html>
 <h1>보험약관 RAG <small>Korean Insurance Contract Q&A — portfolio demo</small></h1>
 <p>질문을 입력하세요 (e.g. "보험금 지급 사유는 무엇인가요?" / "청약철회는 언제까지 가능한가요?")</p>
 <textarea id="q" placeholder="질문…"></textarea><br>
+<select id="doc"><option value="">전체 문서 (all documents)</option></select>
 <button onclick="ask()">질문하기</button>
 <div id="out"></div>
 <script>
+fetch('/documents').then(r => r.json()).then(d => {
+  const sel = document.getElementById('doc');
+  (d.docs || []).forEach(name => {
+    const o = document.createElement('option');
+    o.value = name; o.textContent = name;
+    sel.appendChild(o);
+  });
+}).catch(() => {});
 async function ask() {
   const q = document.getElementById('q').value.trim();
   if (!q) return;
   const out = document.getElementById('out');
   out.innerHTML = '<div class="card">… 검색 중</div>';
   try {
+    const body = {question: q};
+    const doc = document.getElementById('doc').value;
+    if (doc) body.doc = doc;
     const r = await fetch('/ask', {method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({question: q})});
+      body: JSON.stringify(body)});
     const d = await r.json();
     const srcs = (d.sources || []).map((s, i) => {
       const clauses = (s.text.match(/제\s?\d+조/g) || []).filter((v, j, a) => a.indexOf(v) === j);
@@ -94,7 +119,9 @@ async function ask() {
         + '<div>' + chips + '</div>'
         + '<div style="color:#777;font-size:12px">' + s.text + '</div></div>';
     }).join('');
-    let html = '<div class="card"><div class="q">' + d.question + '</div><div style="margin-top:8px">'
+    let html = '<div class="card"><div class="q">' + d.question + '</div>'
+      + (d.doc ? '<div style="color:#888;font-size:12px;margin-top:2px">filtered to: ' + d.doc + '</div>' : '')
+      + '<div style="margin-top:8px">'
       + (d.answer ? d.answer.replace(/\\n/g, '<br>') : '<span class="err">retrieval-only mode — no LLM key set</span>')
       + '</div><div class="src">' + srcs + '</div></div>';
     out.innerHTML = html;
