@@ -20,6 +20,9 @@ python ingest.py
 # 2. Ask (retrieval-only — no API key needed)
 python query.py "보험금 지급 사유는 무엇인가요?" --no-llm
 
+# 2b. Ask one document only (multi-doc corpus: substring of the filename)
+python query.py "보험금 지급 사유는 무엇인가요?" --no-llm --doc claims
+
 # 3. Ask with LLM answers (set DEEPSEEK_API_KEY or any OpenAI-compatible key)
 cp .env.example .env   # add your key
 python query.py "청약철회는 언제까지 가능한가요?"
@@ -41,6 +44,7 @@ query.py / app.py: question ──► embed (query: prefix) ──► cosine top
 - **Embeddings:** `intfloat/multilingual-e5-large` via [fastembed](https://github.com/qdrant/fastembed) — local, open-weight, no API cost, handles Korean well
 - **Generation:** DeepSeek API by default (`deepseek-v4-flash`, OpenAI-compatible) — swap in any provider via `LLM_BASE_URL`/`LLM_MODEL`/`*_API_KEY`
 - **Citations:** every answer is grounded in retrieved passages with clause references; retrieval-only mode (`--no-llm`) works fully offline
+- **Multi-doc filtering:** restrict retrieval to one source document (`query.py --doc <substring>`; `/ask` body field `doc`; UI dropdown populated by `GET /documents`) — handy once the corpus holds several insurers' contracts
 - **No heavy stack:** numpy cosine search — the corpus is small and this keeps the demo dependency-light
 
 ## Sample data ⚠️
@@ -82,9 +86,10 @@ Or locally: `uvicorn app:app --reload` → http://localhost:8000
 - [x] Chunk-level citation rendering in the UI (clause number chips — commit cdba94e)
 - [x] Korean UI polish (commit cdba94e)
 - [x] Deploy config (Dockerfile, $PORT binding, index built at deploy — commit pending)
+- [x] Multi-doc filtering (product type, insurer — `--doc` / `/ask` `doc` / UI dropdown, commit pending)
 - [ ] Real 보험약관 corpus (3–5 insurers, PDF ingest via pypdf) — **blocked**: geo-blocked sources, needs VPN / Seoul partner (see `scripts/fetch_real_contracts.sh`)
 - [ ] Hosted demo deployed to Railway + public URL in README
-- [ ] Multi-doc filtering (product type, insurer)
+- [ ] Portfolio case study + LinkedIn/applications push
 
 ## Contact
 
