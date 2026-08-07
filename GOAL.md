@@ -33,9 +33,9 @@ Land Korean work — the demo project proving capability to Korean employers and
 ### M4 — Prove it in the interview loop
 
 - [x] Multi-doc filtering (product type, insurer) from the README roadmap so the demo handles a mixed corpus — `retrieve(..., doc_filter=)` + CLI `--doc` + `/ask` `doc` field + `GET /documents` + UI dropdown
-- [ ] Add chunk-level citation chips polish in the UI (base landed in cdba94e)
-- [ ] Write the portfolio case study: architecture (fastembed e5-large → numpy cosine → DeepSeek), eval numbers, geo-blocking lesson
-- [ ] Share the demo link + case study on LinkedIn and in applications to Korean insurers/fintech/actuarial vendors
+- [x] Add chunk-level citation chips polish in the UI (base landed in cdba94e) — chips shipped with the filter dropdown; answer card shows "filtered to: <doc>"
+- [x] Write the portfolio case study: architecture (fastembed e5-large → numpy cosine → DeepSeek), eval numbers, geo-blocking lesson — `docs/CASE_STUDY.md`
+- [ ] Share the demo link + case study on LinkedIn and in applications to Korean insurers/fintech/actuarial vendors — needs the hosted demo (M3)
 
 *Definition of done:* the hosted demo link and eval evidence are referenced in Matt's Korea job-search materials and interviews.
 

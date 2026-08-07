@@ -94,3 +94,7 @@ Or locally: `uvicorn app:app --reload` → http://localhost:8000
 ## Contact
 
 Matthew Hendricks — mattdani21@gmail.com — linkedin.com/in/matthew-hendricks-779576144
+
+## Case study
+
+Full write-up: [`docs/CASE_STUDY.md`](docs/CASE_STUDY.md) — architecture decisions, eval numbers, the geo-blocking lesson.
